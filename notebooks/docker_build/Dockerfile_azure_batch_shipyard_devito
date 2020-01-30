@@ -1,0 +1,45 @@
+
+# https://hub.docker.com/r/microsoft/azure-cli/dockerfile   
+FROM debian:latest 
+MAINTAINER George Iordanescu <ghiordan@microsoft.com>
+
+# https://github.com/Azure/batch-shipyard/blob/master/images/docker/linux/cli/Dockerfile
+# https://github.com/Azure/batch-shipyard/blob/master/cargo/Dockerfile
+RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
+    python3 python3-pip python3-setuptools \
+    ca-certificates curl apt-transport-https lsb-release gnupg \
+    zip unzip \
+    wget rsync git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*   && \
+    git clone https://github.com/Azure/batch-shipyard.git /opt/batch-shipyard && \
+    cd /opt/batch-shipyard && \
+    rm -rf .git .github .vsts && \
+    rm -f .git* .travis.yml *.yml install*  && \
+    python3 -m pip install --no-cache-dir --upgrade pip  && \
+    pip3 install --no-cache-dir -r requirements.txt  && \
+    pip3 install --no-cache-dir --no-deps -r req_nodeps.txt && \
+    python3 -m compileall -f /opt/batch-shipyard/shipyard.py /opt/batch-shipyard/convoy 
+# ENTRYPOINT ["/opt/batch-shipyard/shipyard.py"]
+
+# https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest#no-package-for-your-distribution
+# ENV AZ_CLI_REPO=stretch   
+RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -sc) main" | \
+    tee /etc/apt/sources.list.d/azure-cli.list && \
+    curl -L https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    azure-cli 
+
+# https://github.com/Azure/azure-functions-core-tools
+ENV AzFunctionsCoreTools_DIR /azure-functions-cli
+RUN mkdir /tmp/AzFunctionsCoreTools3 && \
+    mkdir -p $AzFunctionsCoreTools_DIR && \
+    cd /tmp/AzFunctionsCoreTools3 && \
+    wget --quiet --no-check-certificate \
+    https://github.com/Azure/azure-functions-core-tools/releases/download/2.7.2100/Azure.Functions.Cli.linux-x64.2.7.2100.zip  && \
+    unzip  -qq -d $AzFunctionsCoreTools_DIR Azure.Functions.Cli.linux-x64.*.zip && \
+    rm -f Azure.Functions.Cli.linux-x64.*.zip && \
+    cd $AzFunctionsCoreTools_DIR && \
+    chmod +x func
+ENV PATH=$AzFunctionsCoreTools_DIR:$PATH    
