@@ -1,0 +1,24 @@
+pool_specification:
+  id: ghiord-bsfs-pool
+  vm_configuration:
+    platform_image:
+      publisher: OpenLogic
+      offer: CentOS-HPC
+      sku: '7.6'
+      native: true
+  vm_count:
+    dedicated: 90
+    low_priority: 0
+  vm_size: Standard_HB120rs_v2
+  inter_node_communication_enabled: true
+#   ssh:
+#     username: shipyard
+#     allow_docker_access: true
+#   additional_node_prep:
+#       commands:
+#         pre:
+#         - wget  -O - https://raw.githubusercontent.com/Azure/batch-insights/master/scripts/run-linux.sh | bash
+#       environment_variables:
+#         BATCH_INSIGHTS_DOWNLOAD_URL: https://github.com/Azure/batch-insights/releases/download/v1.0.0/batch-insights
+#         APP_INSIGHTS_APP_ID: xxxx
+#         APP_INSIGHTS_INSTRUMENTATION_KEY: xxxx
