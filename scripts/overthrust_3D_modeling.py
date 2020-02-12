@@ -129,6 +129,21 @@ origin = (0.0, 0.0, 0.0)
 spacing = (12.5, 12.5, 12.5)
 model = Model(shape=shape, origin=origin, spacing=spacing, vp=vp, space_order=space_order,
               epsilon=epsilon, delta=delta, theta=theta, phi=phi, rho=rho, nbpml=nbpml)
+
+
+# Read coordinates
+file_idx = geomloc + 'source_indices.npy'
+file_src = geomloc + 'src_coordinates.h5'
+file_rec = geomloc + 'rec_coordinates.h5'
+xsrc_full, ysrc_full, zsrc_full = read_coordinates(file_src)
+xrec_full, yrec_full, zrec_full = read_coordinates(file_rec)
+xsrc = xsrc_full[shot_id]; ysrc = ysrc_full[shot_id]; zsrc = zsrc_full[shot_id]
+
+# Set up coordinates as nrec x 3 numpy array
+rec_coordinates = np.concatenate((xrec_full.reshape(-1,1), yrec_full.reshape(-1,1), 
+    zrec_full.reshape(-1,1)), axis=1)
+nrec = rec_coordinates.shape[0]
+
 #######################################################################################
 
 # Get MPI info
@@ -144,31 +159,18 @@ t0 = time.time()
 
 # Time axis
 tstart = 0.
-tn = 500.
+tn = 1000.
 dt = model.critical_dt
 f0 = 0.025
 time_axis = TimeAxis(start=tstart, step=dt, stop=tn)
 
 #########################################################################################
 
-# Source and receiver geometries
-nrecx = 101
-nrecy = 401
-nrec= nrecx * nrecy
-
+# Source geometry
 src_coords = np.empty((1, len(spacing)))
-src_coords[0, :] = np.array(model.domain_size) * .5
-src_coords[0, -1] = 287.5
-
-rec_coordinates = np.empty((nrecx, nrecy, 3))
-for i in range(nrecx):
-    for j in range(nrecy):
-        rec_coordinates[i, j, 0] = (i + 1) * spacing[0]
-        rec_coordinates[i, j, 1] = (j + 1) * spacing[1]
-        rec_coordinates[i, j, 2] = 6.0
-
-rec_coordinates = np.reshape(rec_coordinates, (nrec, 3))
-
+src_coords[0, 0] = xsrc
+src_coords[0, 1] = ysrc
+src_coords[0, 2] = zsrc
 
 src = RickerSource(name='src', grid=model.grid, f0=f0, time_range=time_axis, npoint=1)
 src.coordinates.data[0, :] = src_coords[:]
@@ -185,7 +187,6 @@ src.data[:, 0] = q_custom[:, 0]
 
 timer(t0, 'Setup geometry')
 t0 = time.time()
-
 
 #########################################################################################
 
@@ -211,7 +212,7 @@ info("Max values in u, v : (%s, %s)" % (np.max(u.data[:]), np.max(v.data[:])))
 info("saving shot records %srecloc%s%s" % (recloc, rank, shot_id))
 
 # Resample
-data_loc, coord_loc = resample(d_obs, 5001)
+data_loc, coord_loc = resample(d_obs, 501)
 
 #Save local
 np.save("%srecloc%s%s.npy"% (recloc, rank, shot_id), data_loc)
