@@ -1,5 +1,5 @@
 job_specifications:
-- id: test-modeling-mpi-1
+- id: test-modeling-mpi-01
   auto_complete: true
   shared_data_volumes:
     - azureblob_vol
