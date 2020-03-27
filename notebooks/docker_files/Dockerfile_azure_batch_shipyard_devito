@@ -7,7 +7,7 @@ MAINTAINER George Iordanescu <ghiordan@microsoft.com>
 # https://github.com/Azure/batch-shipyard/blob/master/cargo/Dockerfile
 RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-setuptools \
-    ca-certificates curl apt-transport-https lsb-release gnupg \
+    ca-certificates curl apt-transport-https lsb-release gnupg openssh-client openssh-server \
     zip unzip \
     wget rsync git && \
     apt-get clean && \
