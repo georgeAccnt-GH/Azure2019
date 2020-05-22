@@ -3,7 +3,8 @@ import segyio
 import os, time, subprocess, h5py
 from scipy import interpolate
 from devito import Eq, Operator, info
-from azure.storage.blob import BlockBlobService, PublicAccess
+# from azure.storage.blob import BlockBlobService, PublicAccess
+from azure.storage.blob import BlobServiceClient, PublicAccess
 from scipy.signal import butter, sosfilt
 from sources import TimeAxis
 
