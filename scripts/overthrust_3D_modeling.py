@@ -29,8 +29,7 @@ def timer(start, message):
     minutes, seconds = divmod(rem, 60)
     info('{}: {:d}:{:02d}:{:02d}'.format(message, int(hours), int(minutes), int(seconds)))
 
-#######################################################################################
-
+""
 # Time resampling for shot records
 def resample(rec, num):
     start, stop = rec._time_range.start, rec._time_range.stop
@@ -46,8 +45,7 @@ def resample(rec, num):
     # Return new object
     return data, coords_loc
 
-#######################################################################################
-
+""
 # Segy writer for shot records
 def segy_write(data, sourceX, sourceZ, groupX, groupZ, dt, filename, sourceY=None,
                groupY=None, elevScalar=-1000, coordScalar=-1000):
@@ -84,8 +82,7 @@ def segy_write(data, sourceX, sourceZ, groupX, groupZ, dt, filename, sourceY=Non
             segyfile.trace[i] = data[:, i]
         segyfile.dt=int(dt*1e3)
 
-#######################################################################################
-
+""
 t0 = time.time()
 
 ####### Filter arguments
@@ -115,8 +112,7 @@ nbpml = 40
 timer(t0, 'Args process')
 t0 = time.time()
 
-#########################################################################################
-
+""
 # Read models
 rho = read_h5_model(modelloc + 'rho_with_salt.h5')
 epsilon = read_h5_model(modelloc + 'epsilon_with_salt.h5')
@@ -144,8 +140,7 @@ rec_coordinates = np.concatenate((xrec_full.reshape(-1,1), yrec_full.reshape(-1,
     zrec_full.reshape(-1,1)), axis=1)
 nrec = rec_coordinates.shape[0]
 
-#######################################################################################
-
+""
 # Get MPI info
 comm = model.grid.distributor.comm
 rank =  comm.Get_rank()
@@ -164,8 +159,7 @@ dt = model.critical_dt
 f0 = 0.025
 time_axis = TimeAxis(start=tstart, step=dt, stop=tn)
 
-#########################################################################################
-
+""
 # Source geometry
 src_coords = np.empty((1, len(spacing)))
 src_coords[0, 0] = xsrc
@@ -188,20 +182,18 @@ src.data[:, 0] = q_custom[:, 0]
 timer(t0, 'Setup geometry')
 t0 = time.time()
 
-#########################################################################################
-
+""
 # Propagator
 tti = TTIPropagators(model, space_order=space_order)
 
-#########################################################################################
-
+""
 # Data
 info("Starting forward modeling")
 d_obs, u, v = tti.forward(src, rec_coordinates, autotune=('aggressive', 'runtime'))
 timer(t0, 'Run forward')
 t0 = time.time()
 
-#######################################################################################
+""
 
 #######################################################################################
 # Check output
