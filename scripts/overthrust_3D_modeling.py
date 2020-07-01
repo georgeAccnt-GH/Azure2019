@@ -1,9 +1,8 @@
 # Base imports
-import sys, os
+import sys, os, time
 sys.path.insert(0, '/app/tti')
 from argparse import ArgumentParser
 import numpy as np
-import time
 
 # Devito imports
 from devito.logger import info  
@@ -29,6 +28,20 @@ def timer(start, message):
     minutes, seconds = divmod(rem, 60)
     info('{}: {:d}:{:02d}:{:02d}'.format(message, int(hours), int(minutes), int(seconds)))
 
+""
+# Process summary of performance info
+def process_summary(summary):
+    kernel_runtime = 0  # total runtime
+    gflopss = 0 # total no. of "FLOPS"
+    gpointss = 0  
+    oi = 0
+    for key in summary:
+        kernel_runtime += summary[key].time
+        gflopss += summary[key].gflopss
+        gpointss += summary[key].gpointss
+        oi += summary[key].oi
+    oi = oi / len(summary.keys())   # Average operational intensity
+    return [kernel_runtime, gflopss, gpointss, oi]
 ""
 # Time resampling for shot records
 def resample(rec, num):
@@ -106,6 +119,7 @@ recloc = args.recloc
 modelloc = args.modelloc
 geomloc = args.geomloc
 freesurf = args.freesurf
+
 # Some parameters
 space_order = 12
 nbpml = 40
@@ -156,7 +170,7 @@ t0 = time.time()
 tstart = 0.
 tn = 1000.
 dt = model.critical_dt
-f0 = 0.025
+f0 = 0.020
 time_axis = TimeAxis(start=tstart, step=dt, stop=tn)
 
 ""
@@ -189,7 +203,9 @@ tti = TTIPropagators(model, space_order=space_order)
 ""
 # Data
 info("Starting forward modeling")
-d_obs, u, v = tti.forward(src, rec_coordinates, autotune=('aggressive', 'runtime'))
+tstart = time.time()
+d_obs, u, v, summary1 = tti.forward(src, rec_coordinates, autotune=('aggressive', 'runtime'))
+tend = time.time()
 timer(t0, 'Run forward')
 t0 = time.time()
 
@@ -255,5 +271,10 @@ if rank == 0:
                2.0,  "%srec%s.segy" % (recloc, shot_id),
                sourceY=[src_coords[0,1]], groupY=coords[:, 1])
 
+    # Save performance info
+    summary = process_summary(summary1)
+    summary.insert(0, tend - tstart)
+    summary = np.array(summary)
+    summary.dump("%ssummary%s.npy" % (recloc, shot_id)
 if rank == 0:
     info("All done with saving")
